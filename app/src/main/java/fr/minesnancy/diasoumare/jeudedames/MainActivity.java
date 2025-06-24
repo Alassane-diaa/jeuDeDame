@@ -3,11 +3,6 @@ package fr.minesnancy.diasoumare.jeudedames;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-<<<<<<< HEAD
-=======
-import android.widget.Button;
->>>>>>> 3295585 (first commit)
-
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
