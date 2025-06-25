@@ -2,11 +2,14 @@ package fr.minesnancy.diasoumare.jeudedames;
 
 import android.content.res.Resources;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.GridLayout;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -31,18 +34,22 @@ public class VsPlayer extends AppCompatActivity {
 
     public void createGrid(){
         GridLayout layout = findViewById(R.id.grid);
-        DisplayMetrics displayMetrics = Resources.getSystem().getDisplayMetrics();
-        int width = displayMetrics.widthPixels;
-        int boutonSize = width / 11 ;
-        int height = displayMetrics.heightPixels;
+        int layoutSize = 35 * 20;
+        int screenSize = Resources.getSystem().getDisplayMetrics().widthPixels;
+        int boutonSize = layoutSize / 10;
         for(int i = 1; i <= 10; i++){
             for (int j = 1; j <= 10; j++){
-                Button bouton = new Button(getApplicationContext());
+                ImageButton bouton = new ImageButton(getApplicationContext());
                 if((i+j) % 2 == 0) {
-                    bouton.setBackgroundColor(Color.WHITE);
-                } else{
-                    bouton.setBackgroundColor(Color.BLACK);
+                    if (i <= 4) {
+                        bouton.setImageResource(R.drawable.piece_noire);
+                        bouton.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                    } else if (i >= 7) {
+                        bouton.setImageResource(R.drawable.piece_blanche);
+                        bouton.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                    }
                 }
+                bouton.setBackgroundColor(Color.TRANSPARENT);
                 layout.addView(bouton);
                 ViewGroup.LayoutParams boutonLayoutParams = bouton.getLayoutParams();
                 boutonLayoutParams.width = boutonSize;
