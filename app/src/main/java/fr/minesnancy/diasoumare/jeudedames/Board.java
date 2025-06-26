@@ -1,0 +1,132 @@
+package fr.minesnancy.diasoumare.jeudedames;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class Board {
+
+    private static final int SIZE = 10;
+    private Square[][] board;
+
+    public Board() {
+        board = new Square[SIZE][SIZE];
+        for (int i = 0; i < SIZE; i++) {
+            for (int j = 0; j < SIZE; j++) {
+                board[i][j] = new Square(i, j);
+            }
+        }
+    }
+
+    public void setPiece(int row, int col, int buttonId, Square.PieceColor color) {
+        Square sq = board[row][col];
+        sq.setButtonId(buttonId);
+        sq.setColor(color);
+    }
+
+    public Square.PieceColor getPieceColor(int row, int col) {
+        return board[row][col].getColor();
+    }
+
+    public boolean isGameOver() {
+        boolean hasWhite = false, hasBlack = false;
+        for (int i = 0; i < SIZE; i++) {
+            for (int j = 0; j < SIZE; j++) {
+                Square.PieceColor color = board[i][j].getColor();
+                if (color == Square.PieceColor.WHITE) hasWhite = true;
+                if (color == Square.PieceColor.BLACK) hasBlack = true;
+            }
+        }
+        return !(hasWhite && hasBlack);
+    }
+
+    public int getButtonId(int row, int col) {
+        return board[row][col].getButtonId();
+    }
+
+    public int[] findPositionByButtonId(int buttonId) {
+        for (int i = 0; i < SIZE; i++) {
+            for (int j = 0; j < SIZE; j++) {
+                if (board[i][j].getButtonId() == buttonId) {
+                    return new int[]{i, j};
+                }
+            }
+        }
+        return null; // Not found
+    }
+
+    public Square findSquareByButtonId(int buttonId) {
+        for (int i = 0; i < SIZE; i++) {
+            for (int j = 0; j < SIZE; j++) {
+                if (this.getButtonId(i, j) == buttonId) {
+                    return board[i][j];
+                }
+            }
+        }
+        return null;
+    }
+
+    public Square getSquare(int row, int col) {
+        return board[row][col];
+    }
+
+    public List<Square> getAccessibleMoves(int row, int col) {
+        List<Square> moves = new ArrayList<>();
+        Square.PieceColor color = board[row][col].getColor();
+        if (color == Square.PieceColor.NONE) return moves;
+
+        int direction = (color == Square.PieceColor.WHITE) ? -1 : 1;
+        // Les pièces noires vers le bas, les blanches vers le haut
+        int[] dCols = {-1, 1};
+        for (int dCol : dCols) {
+            int newRow = row + direction;
+            int newCol = col + dCol;
+            if (isWithinBounds(newRow, newCol) && board[newRow][newCol].getColor() == Square.PieceColor.NONE) {
+                moves.add(board[newRow][newCol]);
+            }
+        }
+        return moves;
+    }
+
+    public static int generateButtonId(int row, int col) {
+        return row * SIZE + col; // pour que ça soit unique
+    }
+
+    public boolean movePiece(int startRow, int startCol, int endRow, int endCol) {
+        if (!isWithinBounds(startRow, startCol) || !isWithinBounds(endRow, endCol)) {
+            return false;
+        }
+
+        Square startSquare = board[startRow][startCol];
+        Square endSquare = board[endRow][endCol];
+
+        if (startSquare.getColor() == Square.PieceColor.NONE) {
+            return false;
+        }
+
+        if (endSquare.getColor() != Square.PieceColor.NONE) {
+            return false;
+        }
+
+        int rowDiff = endRow - startRow;
+        int colDiff = Math.abs(endCol - startCol);
+        if (startSquare.getColor() == Square.PieceColor.WHITE && rowDiff != -1) {
+            return false;
+        }
+        if (startSquare.getColor() == Square.PieceColor.BLACK && rowDiff != 1) {
+            return false;
+        }
+
+        if (colDiff != 1) {
+            return false;
+        }
+
+        endSquare.setColor(startSquare.getColor());
+        startSquare.setColor(Square.PieceColor.NONE);
+
+        return true;
+    }
+
+    private boolean isWithinBounds(int row, int col) {
+        return row >= 0 && row < SIZE && col >= 0 && col < SIZE;
+    }
+}

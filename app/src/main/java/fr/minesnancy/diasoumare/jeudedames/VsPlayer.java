@@ -12,6 +12,7 @@ import android.widget.GridLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,7 +20,13 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import java.util.List;
+
 public class VsPlayer extends AppCompatActivity {
+
+    private ImageButton[][] buttons = new ImageButton[10][10];
+    private Board board = new Board();
+    private Square selectedSquare = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,41 +45,128 @@ public class VsPlayer extends AppCompatActivity {
         GridLayout layout = findViewById(R.id.grid);
         int layoutSize = 35 * 20; //350dp que j'ai mis en taille de la grille dans le fichier XML
         int boutonSize = layoutSize / 10;
-        for(int i = 1; i <= 10; i++){
-            for (int j = 1; j <= 10; j++){
+        for(int i = 0; i < 10; i++){
+            for (int j = 0; j < 10; j++){
                 ImageButton bouton = new ImageButton(getApplicationContext());
                 if((i+j) % 2 == 0) {
-                    if (i <= 4) {
+                    if (i <= 3) {
                         bouton.setImageResource(R.drawable.piece_noire);
                         bouton.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                    } else if (i >= 7) {
+                        board.setPiece(i, j, Board.generateButtonId(i, j), Square.PieceColor.BLACK);
+                    } else if (i >= 6) {
                         bouton.setImageResource(R.drawable.piece_blanche);
                         bouton.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                        board.setPiece(i, j, Board.generateButtonId(i, j), Square.PieceColor.WHITE);
+                    } else {
+                        board.setPiece(i, j, Board.generateButtonId(i, j), Square.PieceColor.NONE);
                     }
                 }
+
+                buttons[i][j] = bouton;
                 bouton.setBackgroundColor(Color.TRANSPARENT);
+                bouton.setId(Board.generateButtonId(i, j));
                 layout.addView(bouton);
                 ViewGroup.LayoutParams boutonLayoutParams = bouton.getLayoutParams();
                 boutonLayoutParams.width = boutonSize;
                 boutonLayoutParams.height = boutonSize;
                 bouton.setLayoutParams(boutonLayoutParams);
-                // Comme je t'avais dit, je crée juste les boutons, pas les listeners (c'est à dire ce qu'ils font quand on clique dessus)
-                // Il serait peut être pertinent de les mettre dans un tableau pour pouvoir les manipuler plus facilement
-                // Genre un tableau de 10x10, et chaque bouton serait à la position [i][j] dans le tableau
-                // Et tu pourrais repérer un bouton par son id en faisant bouton.setID(*) avec * un truc distinctif qui renseigne sur la couleur et la position
-                // Je me suis aussi rendu compte que je n'ai pas mis d'image pour le cas où une piece devient une dame
-                // Je vais faire ça après en fonction de la logique que tu veux implémenter
+                bouton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        int[] position = board.findPositionByButtonId(v.getId());
+                        if (position != null) { // Pour pas que ça soit sur une case blanche sinon ça crashe
+                            handleButtonClick(position[0], position[1]);
+                        }
+                    }
+                });
             }
         }
     }
-    public void changeTurn(){
+
+    private void handleButtonClick(int row, int col) {
+        Square clickedSquare = board.getSquare(row, col);
+
+        if (selectedSquare == null) {
+            // Si aucune pièce n'est sélectionnée
+            if (clickedSquare.getColor() != Square.PieceColor.NONE) {
+                selectedSquare = clickedSquare;
+                highlightAccessibleMoves(selectedSquare);
+                buttons[row][col].setBackgroundColor(Color.RED);
+            }
+        } else {
+            if (selectedSquare == clickedSquare) {
+                // Si la même pièce est cliquée deux fois de suite, on désélectionne
+                clearHighlights();
+                selectedSquare = null;
+            }
+            else if (clickedSquare.getColor() == Square.PieceColor.NONE && isAccessibleMove(clickedSquare)) {
+                // Si on clique sur une case vide accessible, on y go
+                board.movePiece(selectedSquare.getPosition()[0], selectedSquare.getPosition()[1], row, col);
+                updateUI();
+                clearHighlights();
+                selectedSquare = null;
+                changeTurn();
+            }
+            else if (clickedSquare.getColor() == selectedSquare.getColor()) {
+                // Changement de sélection, si la pièce est de la même couleur
+                clearHighlights();
+                selectedSquare = clickedSquare;
+                highlightAccessibleMoves(selectedSquare);
+                buttons[row][col].setBackgroundColor(Color.RED);
+            }
+            else {
+                clearHighlights();
+                selectedSquare = null;
+            }
+        }
+    }
+
+    private void highlightAccessibleMoves(Square square) {
+        List<Square> moves = board.getAccessibleMoves(square.getPosition()[0], square.getPosition()[1]);
+        for (Square move : moves) {
+            int[] pos = move.getPosition();
+            buttons[pos[0]][pos[1]].setBackgroundColor(Color.RED);
+        }
+    }
+
+    private boolean isAccessibleMove(Square square) {
+        List<Square> moves = board.getAccessibleMoves(selectedSquare.getPosition()[0], selectedSquare.getPosition()[1]);
+        return moves.contains(square);
+    }
+
+    private void clearHighlights() {
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                buttons[i][j].setBackgroundColor(Color.TRANSPARENT);
+            }
+        }
+        // C'est peut êter pas nécessaire de parcourir toute la grille mais flemme
+    }
+
+    private void updateUI() {
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                Square square = board.getSquare(i, j);
+                if (square.getColor() == Square.PieceColor.WHITE) {
+                    buttons[i][j].setImageResource(R.drawable.piece_blanche);
+                } else if (square.getColor() == Square.PieceColor.BLACK) {
+                    buttons[i][j].setImageResource(R.drawable.piece_noire);
+                } else {
+                    buttons[i][j].setImageResource(0); // Clear image
+                }
+                buttons[i][j].setBackgroundColor(Color.TRANSPARENT);
+                buttons[i][j].setScaleType(ImageView.ScaleType.CENTER_CROP);
+            }
+        }
+    }
+
+    public void changeTurn() {
         TextView textView = findViewById(R.id.turn);
-        if(textView.getText().toString().equals("Tour des blancs")){
+        if (textView.getText().toString().equals("Tour des blancs")) {
             textView.setText("Tour des noirs");
         } else {
             textView.setText("Tour des blancs");
         }
-        // Là je change juste le texte, je te laisse activer et désactiver les boutons convenablement
+        // TODO : bloquer les boutons de la couleur qui n'est pas en train de jouer
     }
-
 }
