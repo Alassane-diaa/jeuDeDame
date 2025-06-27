@@ -13,7 +13,7 @@
         android:id="@+id/grid"
         android:layout_width="350dp"
         android:layout_height="350dp"
-        android:background="@drawable/damier"
+        android:background="@drawable/damier_marron"
         android:columnCount="10"
         android:rowCount="10"
         app:layout_constraintBottom_toBottomOf="parent"
