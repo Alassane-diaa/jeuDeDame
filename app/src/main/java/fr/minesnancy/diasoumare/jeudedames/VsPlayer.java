@@ -28,6 +28,8 @@ public class VsPlayer extends AppCompatActivity {
     private Board board = new Board();
     private Square selectedSquare = null;
 
+    private Square.PieceColor tour = Square.PieceColor.WHITE;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -86,37 +88,36 @@ public class VsPlayer extends AppCompatActivity {
     private void handleButtonClick(int row, int col) {
         Square clickedSquare = board.getSquare(row, col);
 
-        if (selectedSquare == null) {
-            // Si aucune pièce n'est sélectionnée
-            if (clickedSquare.getColor() != Square.PieceColor.NONE) {
-                selectedSquare = clickedSquare;
-                highlightAccessibleMoves(selectedSquare);
-                buttons[row][col].setBackgroundColor(Color.RED);
-            }
-        } else {
-            if (selectedSquare == clickedSquare) {
-                // Si la même pièce est cliquée deux fois de suite, on désélectionne
-                clearHighlights();
-                selectedSquare = null;
-            }
-            else if (clickedSquare.getColor() == Square.PieceColor.NONE && isAccessibleMove(clickedSquare)) {
-                // Si on clique sur une case vide accessible, on y go
-                board.movePiece(selectedSquare.getPosition()[0], selectedSquare.getPosition()[1], row, col);
-                updateUI();
-                clearHighlights();
-                selectedSquare = null;
-                changeTurn();
-            }
-            else if (clickedSquare.getColor() == selectedSquare.getColor()) {
-                // Changement de sélection, si la pièce est de la même couleur
-                clearHighlights();
-                selectedSquare = clickedSquare;
-                highlightAccessibleMoves(selectedSquare);
-                buttons[row][col].setBackgroundColor(Color.RED);
-            }
-            else {
-                clearHighlights();
-                selectedSquare = null;
+        if (tour == clickedSquare.color || clickedSquare.getColor() == Square.PieceColor.NONE){
+            if (selectedSquare == null) {
+                // Si aucune pièce n'est sélectionnée
+                if (clickedSquare.getColor() != Square.PieceColor.NONE) {
+                    selectedSquare = clickedSquare;
+                    highlightAccessibleMoves(selectedSquare);
+                    buttons[row][col].setBackgroundColor(Color.RED);
+                }
+            } else {
+                if (selectedSquare == clickedSquare) {
+                    // Si la même pièce est cliquée deux fois de suite, on désélectionne
+                    clearHighlights();
+                    selectedSquare = null;
+                } else if (clickedSquare.getColor() == Square.PieceColor.NONE && isAccessibleMove(clickedSquare)) {
+                    // Si on clique sur une case vide accessible, on y go
+                    board.movePiece(selectedSquare.getPosition()[0], selectedSquare.getPosition()[1], row, col);
+                    updateUI();
+                    clearHighlights();
+                    selectedSquare = null;
+                    changeTurn();
+                } else if (clickedSquare.getColor() == selectedSquare.getColor()) {
+                    // Changement de sélection, si la pièce est de la même couleur
+                    clearHighlights();
+                    selectedSquare = clickedSquare;
+                    highlightAccessibleMoves(selectedSquare);
+                    buttons[row][col].setBackgroundColor(Color.RED);
+                } else {
+                    clearHighlights();
+                    selectedSquare = null;
+                }
             }
         }
     }
@@ -163,9 +164,11 @@ public class VsPlayer extends AppCompatActivity {
     public void changeTurn() {
         TextView textView = findViewById(R.id.turn);
         if (textView.getText().toString().equals("Tour des blancs")) {
+            tour = Square.PieceColor.BLACK;
             textView.setText("Tour des noirs");
         } else {
             textView.setText("Tour des blancs");
+            tour = Square.PieceColor.WHITE;
         }
         // TODO : bloquer les boutons de la couleur qui n'est pas en train de jouer
     }

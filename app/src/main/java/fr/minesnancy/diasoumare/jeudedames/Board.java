@@ -71,7 +71,8 @@ public class Board {
 
     public List<Square> getAccessibleMoves(int row, int col) {
         List<Square> moves = new ArrayList<>();
-        Square.PieceColor color = board[row][col].getColor();
+        Square square = this.getSquare(row, col);
+        Square.PieceColor color = square.getColor();
         if (color == Square.PieceColor.NONE) return moves;
 
         int direction = (color == Square.PieceColor.WHITE) ? -1 : 1;
@@ -82,11 +83,12 @@ public class Board {
             int newCol = col + dCol;
             if (isWithinBounds(newRow, newCol) && board[newRow][newCol].getColor() == Square.PieceColor.NONE) {
                 moves.add(board[newRow][newCol]);
+            } else if (isWithinBounds(newRow + direction, newCol + direction) && board[newRow + direction][newCol + direction].getColor() == Square.PieceColor.NONE && board[newRow][newCol].getColor() != Square.PieceColor.NONE && board[newRow][newCol].getColor() != color ) {
+                moves.add(board[newRow+direction][newCol+dCol]);
             }
         }
         return moves;
     }
-
     public static int generateButtonId(int row, int col) {
         return row * SIZE + col; // pour que ça soit unique
     }
@@ -98,6 +100,7 @@ public class Board {
 
         Square startSquare = board[startRow][startCol];
         Square endSquare = board[endRow][endCol];
+        Square midSquare = board[(endRow+startRow)/2][(endCol+startCol)/2];
 
         if (startSquare.getColor() == Square.PieceColor.NONE) {
             return false;
@@ -109,19 +112,23 @@ public class Board {
 
         int rowDiff = endRow - startRow;
         int colDiff = Math.abs(endCol - startCol);
-        if (startSquare.getColor() == Square.PieceColor.WHITE && rowDiff != -1) {
+        if (startSquare.getColor() == Square.PieceColor.WHITE && rowDiff != -1 && rowDiff != -2) {
             return false;
         }
-        if (startSquare.getColor() == Square.PieceColor.BLACK && rowDiff != 1) {
+        if (startSquare.getColor() == Square.PieceColor.BLACK && rowDiff != 1  && rowDiff != 2) {
             return false;
         }
 
-        if (colDiff != 1) {
+        if (colDiff != 1 && colDiff != 2) {
             return false;
         }
 
         endSquare.setColor(startSquare.getColor());
         startSquare.setColor(Square.PieceColor.NONE);
+
+        if (colDiff == 2) {
+            midSquare.setColor(Square.PieceColor.NONE);
+        }
 
         return true;
     }
