@@ -83,7 +83,7 @@ public class Board {
             int newCol = col + dCol;
             if (isWithinBounds(newRow, newCol) && board[newRow][newCol].getColor() == Square.PieceColor.NONE) {
                 moves.add(board[newRow][newCol]);
-            } else if (isWithinBounds(newRow + direction, newCol + direction) && board[newRow + direction][newCol + direction].getColor() == Square.PieceColor.NONE && board[newRow][newCol].getColor() != Square.PieceColor.NONE && board[newRow][newCol].getColor() != color ) {
+            } else if (isWithinBounds(newRow + direction, newCol + dCol) && board[newRow + direction][newCol + dCol].getColor() == Square.PieceColor.NONE && board[newRow][newCol].getColor() != Square.PieceColor.NONE && board[newRow][newCol].getColor() != color ) {
                 moves.add(board[newRow+direction][newCol+dCol]);
             }
         }
