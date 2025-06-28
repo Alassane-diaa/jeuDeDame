@@ -74,17 +74,46 @@ public class Board {
         Square square = this.getSquare(row, col);
         Square.PieceColor color = square.getColor();
         if (color == Square.PieceColor.NONE) return moves;
-
-        int direction = (color == Square.PieceColor.WHITE) ? -1 : 1;
-        // Les pièces noires vers le bas, les blanches vers le haut
-        int[] dCols = {-1, 1};
-        for (int dCol : dCols) {
-            int newRow = row + direction;
-            int newCol = col + dCol;
-            if (isWithinBounds(newRow, newCol) && board[newRow][newCol].getColor() == Square.PieceColor.NONE) {
-                moves.add(board[newRow][newCol]);
-            } else if (isWithinBounds(newRow + direction, newCol + dCol) && board[newRow + direction][newCol + dCol].getColor() == Square.PieceColor.NONE && board[newRow][newCol].getColor() != Square.PieceColor.NONE && board[newRow][newCol].getColor() != color ) {
-                moves.add(board[newRow+direction][newCol+dCol]);
+        if (!square.isDame()){
+            int direction = (color == Square.PieceColor.WHITE) ? -1 : 1;
+            // Les pièces noires vers le bas, les blanches vers le haut
+            int[] dCols = {-1, 1};
+            for (int dCol : dCols) {
+                int newRow = row + direction;
+                int newCol = col + dCol;
+                if (isWithinBounds(newRow, newCol) && board[newRow][newCol].getColor() == Square.PieceColor.NONE) {
+                    moves.add(board[newRow][newCol]);
+                } else if (isWithinBounds(newRow + direction, newCol + dCol) && board[newRow + direction][newCol + dCol].getColor() == Square.PieceColor.NONE && board[newRow][newCol].getColor() != Square.PieceColor.NONE && board[newRow][newCol].getColor() != color ) {
+                    moves.add(board[newRow+direction][newCol+dCol]);
+                }
+            }
+        } else {
+            // Pour les dames
+            int[] dRows = {-1, 1};
+            int[] dCols = {-1, 1};
+            for (int dRow : dRows) {
+                for (int dCol : dCols) {
+                    int newRow = row + dRow;
+                    int newCol = col + dCol;
+                    while (isWithinBounds(newRow, newCol)) {
+                        if (board[newRow][newCol].getColor() == Square.PieceColor.NONE) {
+                            moves.add(board[newRow][newCol]);
+                        } else if (board[newRow][newCol].getColor() != color) {
+                            // Pièce adverse
+                            int jumpRow = newRow + dRow;
+                            int jumpCol = newCol + dCol;
+                            if (isWithinBounds(jumpRow, jumpCol) && board[jumpRow][jumpCol].getColor() == Square.PieceColor.NONE) {
+                                moves.add(board[jumpRow][jumpCol]);
+                            } else {
+                                break; // Deux pièces de couleurs différentes
+                            }
+                        } else {
+                            break; // Pièce de la même couleur
+                        }
+                        newRow += dRow;
+                        newCol += dCol;
+                    }
+                }
             }
         }
         return moves;
@@ -112,16 +141,6 @@ public class Board {
 
         int rowDiff = endRow - startRow;
         int colDiff = Math.abs(endCol - startCol);
-        if (startSquare.getColor() == Square.PieceColor.WHITE && rowDiff != -1 && rowDiff != -2) {
-            return false;
-        }
-        if (startSquare.getColor() == Square.PieceColor.BLACK && rowDiff != 1  && rowDiff != 2) {
-            return false;
-        }
-
-        if (colDiff != 1 && colDiff != 2) {
-            return false;
-        }
 
         endSquare.setColor(startSquare.getColor());
         startSquare.setColor(Square.PieceColor.NONE);
@@ -130,10 +149,17 @@ public class Board {
             midSquare.setColor(Square.PieceColor.NONE);
         }
 
-        if (endRow == 0 && endSquare.getColor() == Square.PieceColor.WHITE) {
+        if (endRow == 0 && endSquare.getColor() == Square.PieceColor.WHITE || startSquare.isDame()) {
             endSquare.setDame(true);
-        } else if (endRow == SIZE - 1 && endSquare.getColor() == Square.PieceColor.BLACK) {
+        } else if (endRow == SIZE - 1 && endSquare.getColor() == Square.PieceColor.BLACK || startSquare.isDame()) {
             endSquare.setDame(true);
+        }
+        if(colDiff >= 2){
+            for(int i = 0; i < colDiff; i++){
+                int midRow = startRow + (rowDiff > 0 ? 1 : -1) * i;
+                int midCol = startCol + (endCol > startCol ? 1 : -1) * i;
+                board[midRow][midCol].setColor(Square.PieceColor.NONE);
+            }
         }
         return true;
     }
