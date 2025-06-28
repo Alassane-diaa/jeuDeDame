@@ -165,11 +165,14 @@ public class VsPlayer extends AppCompatActivity {
         TextView textView = findViewById(R.id.turn);
         if (textView.getText().toString().equals("Tour des blancs")) {
             tour = Square.PieceColor.BLACK;
+            textView.setTextColor(Color.WHITE);
+            textView.setBackgroundColor(Color.BLACK);
             textView.setText("Tour des noirs");
         } else {
-            textView.setText("Tour des blancs");
             tour = Square.PieceColor.WHITE;
+            textView.setText("Tour des blancs");
+            textView.setBackgroundColor(Color.WHITE);
+            textView.setTextColor(Color.BLACK);
         }
-        // TODO : bloquer les boutons de la couleur qui n'est pas en train de jouer
     }
 }
