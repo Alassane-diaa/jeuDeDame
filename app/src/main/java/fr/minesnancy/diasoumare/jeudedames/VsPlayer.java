@@ -149,9 +149,17 @@ public class VsPlayer extends AppCompatActivity {
             for (int j = 0; j < 10; j++) {
                 Square square = board.getSquare(i, j);
                 if (square.getColor() == Square.PieceColor.WHITE) {
-                    buttons[i][j].setImageResource(R.drawable.piece_blanche);
+                    if(square.isDame()){
+                        buttons[i][j].setImageResource(R.drawable.piece_dame_blanche);
+                    } else {
+                        buttons[i][j].setImageResource(R.drawable.piece_blanche);
+                    }
                 } else if (square.getColor() == Square.PieceColor.BLACK) {
-                    buttons[i][j].setImageResource(R.drawable.piece_noire);
+                    if (square.isDame()) {
+                        buttons[i][j].setImageResource(R.drawable.piece_dame_noire);
+                    } else {
+                        buttons[i][j].setImageResource(R.drawable.piece_noire);
+                    }
                 } else {
                     buttons[i][j].setImageResource(0); // Clear image
                 }

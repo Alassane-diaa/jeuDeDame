@@ -130,6 +130,11 @@ public class Board {
             midSquare.setColor(Square.PieceColor.NONE);
         }
 
+        if (endRow == 0 && endSquare.getColor() == Square.PieceColor.WHITE) {
+            endSquare.setDame(true);
+        } else if (endRow == SIZE - 1 && endSquare.getColor() == Square.PieceColor.BLACK) {
+            endSquare.setDame(true);
+        }
         return true;
     }
 

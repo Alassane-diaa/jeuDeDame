@@ -6,11 +6,13 @@ public class Square {
     int row, col;
     int buttonId;
     PieceColor color;
+    boolean isDame;
     public Square(int row, int col) {
         this.row = row;
         this.col = col;
         this.buttonId = 0;
         this.color = PieceColor.NONE;
+        this.isDame = false;
     }
 
     public void setButtonId(int buttonId) {
@@ -36,5 +38,13 @@ public class Square {
     public void setPosition(int row, int col) {
         this.row = row;
         this.col = col;
+    }
+
+    public void setDame(boolean isDame) {
+        this.isDame = isDame;
+    }
+
+    public boolean isDame() {
+        return isDame;
     }
 }
