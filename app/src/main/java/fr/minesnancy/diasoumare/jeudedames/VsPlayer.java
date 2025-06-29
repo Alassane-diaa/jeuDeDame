@@ -1,6 +1,7 @@
 package fr.minesnancy.diasoumare.jeudedames;
 
 import android.graphics.Color;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -24,8 +25,10 @@ public class VsPlayer extends AppCompatActivity {
     private ImageButton[][] buttons = new ImageButton[10][10];
     private Board board = new Board();
     private Square selectedSquare = null;
-
     private Square.PieceColor tour = Square.PieceColor.WHITE;
+    private MediaPlayer clickSound;
+    private MediaPlayer moveSound;
+    private MediaPlayer illegalMoveSound;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +40,10 @@ public class VsPlayer extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        clickSound = MediaPlayer.create(getApplicationContext(), R.raw.click);
+        moveSound = MediaPlayer.create(getApplicationContext(), R.raw.move);
+        illegalMoveSound = MediaPlayer.create(getApplicationContext(), R.raw.illegal);
+
         createGrid();
     }
 
@@ -92,18 +99,21 @@ public class VsPlayer extends AppCompatActivity {
                     selectedSquare = clickedSquare;
                     highlightAccessibleMoves(selectedSquare);
                     buttons[row][col].setBackgroundColor(Color.RED);
+                    clickSound.start();
                 }
             } else {
                 if (selectedSquare == clickedSquare) {
                     // Si la même pièce est cliquée deux fois de suite, on désélectionne
                     clearHighlights();
                     selectedSquare = null;
+                    clickSound.start();
                 } else if (clickedSquare.getColor() == Square.PieceColor.NONE && isAccessibleMove(clickedSquare)) {
                     // Si on clique sur une case vide accessible, on y go
                     board.movePiece(selectedSquare.getPosition()[0], selectedSquare.getPosition()[1], row, col);
                     updateUI();
                     clearHighlights();
                     selectedSquare = null;
+                    moveSound.start();
                     changeTurn();
                 } else if (clickedSquare.getColor() == selectedSquare.getColor()) {
                     // Changement de sélection, si la pièce est de la même couleur
@@ -111,11 +121,15 @@ public class VsPlayer extends AppCompatActivity {
                     selectedSquare = clickedSquare;
                     highlightAccessibleMoves(selectedSquare);
                     buttons[row][col].setBackgroundColor(Color.RED);
+                    clickSound.start();
                 } else {
                     clearHighlights();
                     selectedSquare = null;
+                    illegalMoveSound.start();
                 }
             }
+        } else {
+            illegalMoveSound.start();
         }
     }
 
