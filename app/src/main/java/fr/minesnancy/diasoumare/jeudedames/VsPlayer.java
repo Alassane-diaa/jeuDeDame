@@ -89,7 +89,7 @@ public class VsPlayer extends AppCompatActivity {
         }
     }
     private boolean hasAnotherCapture(int row, int col) {
-        return board.getAccessibleCaptures(row, col).size() > 0;
+        return !board.getAccessibleCaptures(row, col).isEmpty();
     }
 
     private void handleButtonClick(int row, int col) {
@@ -114,30 +114,22 @@ public class VsPlayer extends AppCompatActivity {
                     // Si on clique sur une case vide accessible, on y go
                     int fromRow = selectedSquare.getPosition()[0];
                     int fromCol = selectedSquare.getPosition()[1];
-
-                    boolean isCapture = board.isCaptureMove(fromRow, fromCol, row, col);
-
                     board.movePiece(fromRow, fromCol, row, col);
                     updateUI();
                     clearHighlights();
 
+                    boolean isCapture = board.isCaptureMove(fromRow, fromCol, row, col);
                     if (isCapture && hasAnotherCapture(row, col)) {
                         // Rejouer avec le même pion
                         selectedSquare = board.getSquare(row, col);
-                        highlightAccessibleMoves(selectedSquare);
+                        highlightAccessibleCaptures(selectedSquare);
                         buttons[row][col].setBackgroundColor(Color.RED);
                     } else {
                         selectedSquare = null;
                         changeTurn();
+                        checkGameOver();
                     }
-
-
-                    // AJOUT : Vérifier la fin de partie après chaque mouvement
-                    checkGameOver();
-
-                    selectedSquare = null;
                     moveSound.start();
-                    changeTurn();
                 } else if (clickedSquare.getColor() == selectedSquare.getColor()) {
                     // Changement de sélection, si la pièce est de la même couleur
                     clearHighlights();
@@ -160,6 +152,14 @@ public class VsPlayer extends AppCompatActivity {
         List<Square> moves = board.getAccessibleMoves(square.getPosition()[0], square.getPosition()[1]);
         for (Square move : moves) {
             int[] pos = move.getPosition();
+            buttons[pos[0]][pos[1]].setBackgroundColor(Color.RED);
+        }
+    }
+
+    private void highlightAccessibleCaptures(Square square) {
+        List<Square> captures = board.getAccessibleCaptures(square.getPosition()[0], square.getPosition()[1]);
+        for (Square capture : captures) {
+            int[] pos = capture.getPosition();
             buttons[pos[0]][pos[1]].setBackgroundColor(Color.RED);
         }
     }
@@ -279,9 +279,6 @@ public class VsPlayer extends AppCompatActivity {
         }
     }
 
-    /**
-     * Détermine le gagnant basé sur les pièces restantes
-     */
     private String getWinner() {
         boolean hasWhite = false;
         boolean hasBlack = false;
@@ -299,9 +296,6 @@ public class VsPlayer extends AppCompatActivity {
         return "Égalité"; // Cas improbable mais possible
     }
 
-    /**
-     * Vérifie si un joueur a des mouvements valides
-     */
     private boolean hasNoValidMoves(Square.PieceColor playerColor) {
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
@@ -317,9 +311,6 @@ public class VsPlayer extends AppCompatActivity {
         return true; // Aucun mouvement possible
     }
 
-    /**
-     * Affiche le dialog de fin de partie
-     */
     private void showGameOverDialog(String winner) {
         ViewGroup layout = findViewById(R.id.main);
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
