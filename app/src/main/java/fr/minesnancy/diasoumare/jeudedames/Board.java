@@ -74,7 +74,7 @@ public class Board {
         Square square = this.getSquare(row, col);
         Square.PieceColor color = square.getColor();
         if (color == Square.PieceColor.NONE) return moves;
-        if (!square.isDame()){
+        if (!square.isDame()) {
             int direction = (color == Square.PieceColor.WHITE) ? -1 : 1;
             // Les pièces noires vers le bas, les blanches vers le haut
             int[] dCols = {-1, 1};
@@ -83,8 +83,8 @@ public class Board {
                 int newCol = col + dCol;
                 if (isWithinBounds(newRow, newCol) && board[newRow][newCol].getColor() == Square.PieceColor.NONE) {
                     moves.add(board[newRow][newCol]);
-                } else if (isWithinBounds(newRow + direction, newCol + dCol) && board[newRow + direction][newCol + dCol].getColor() == Square.PieceColor.NONE && board[newRow][newCol].getColor() != Square.PieceColor.NONE && board[newRow][newCol].getColor() != color ) {
-                    moves.add(board[newRow+direction][newCol+dCol]);
+                } else if (isWithinBounds(newRow + direction, newCol + dCol) && board[newRow + direction][newCol + dCol].getColor() == Square.PieceColor.NONE && board[newRow][newCol].getColor() != Square.PieceColor.NONE && board[newRow][newCol].getColor() != color) {
+                    moves.add(board[newRow + direction][newCol + dCol]);
                 }
             }
         } else {
@@ -118,8 +118,69 @@ public class Board {
         }
         return moves;
     }
+
     public static int generateButtonId(int row, int col) {
         return row * SIZE + col; // pour que ça soit unique
+    }
+
+    public List<Square> getAccessibleCaptures(int row, int col) {
+        List<Square> captures = new ArrayList<>();
+        Square square = board[row][col];
+        Square.PieceColor color = square.getColor();
+        if (color == Square.PieceColor.NONE) return captures;
+
+        if (!square.isDame()) {
+            int direction = (color == Square.PieceColor.WHITE) ? -1 : 1;
+            int[] dCols = {-1, 1};
+            for (int dCol : dCols) {
+                int middleRow = row + direction;
+                int middleCol = col + dCol;
+                int targetRow = row + 2 * direction;
+                int targetCol = col + 2 * dCol;
+
+                if (isWithinBounds(middleRow, middleCol) && isWithinBounds(targetRow, targetCol)) {
+                    Square middle = board[middleRow][middleCol];
+                    Square target = board[targetRow][targetCol];
+
+                    if (middle.getColor() != Square.PieceColor.NONE &&
+                            middle.getColor() != color &&
+                            target.getColor() == Square.PieceColor.NONE) {
+                        captures.add(target);
+                    }
+                }
+            }
+        } else {
+            // Mouvements pour dames
+            int[] dRows = {-1, 1};
+            int[] dCols = {-1, 1};
+            for (int dRow : dRows) {
+                for (int dCol : dCols) {
+                    int curRow = row + dRow;
+                    int curCol = col + dCol;
+                    boolean enemyFound = false;
+                    while (isWithinBounds(curRow, curCol)) {
+                        Square current = board[curRow][curCol];
+                        if (current.getColor() == Square.PieceColor.NONE) {
+                            if (enemyFound) {
+                                captures.add(current);
+                            }
+                        } else if (current.getColor() != color) {
+                            if (!enemyFound) {
+                                enemyFound = true;
+                            } else {
+                                break;
+                            }
+                        } else {
+                            break;
+                        }
+                        curRow += dRow;
+                        curCol += dCol;
+                    }
+                }
+            }
+        }
+
+        return captures;
     }
 
     public boolean movePiece(int startRow, int startCol, int endRow, int endCol) {
@@ -129,7 +190,7 @@ public class Board {
 
         Square startSquare = board[startRow][startCol];
         Square endSquare = board[endRow][endCol];
-        Square midSquare = board[(endRow+startRow)/2][(endCol+startCol)/2];
+        Square midSquare = board[(endRow + startRow) / 2][(endCol + startCol) / 2];
 
         if (startSquare.getColor() == Square.PieceColor.NONE) {
             return false;
@@ -154,8 +215,8 @@ public class Board {
         } else if (endRow == SIZE - 1 && endSquare.getColor() == Square.PieceColor.BLACK || startSquare.isDame()) {
             endSquare.setDame(true);
         }
-        if(colDiff >= 2){
-            for(int i = 0; i < colDiff; i++){
+        if (colDiff >= 2) {
+            for (int i = 0; i < colDiff; i++) {
                 int midRow = startRow + (rowDiff > 0 ? 1 : -1) * i;
                 int midCol = startCol + (endCol > startCol ? 1 : -1) * i;
                 board[midRow][midCol].setColor(Square.PieceColor.NONE);
@@ -166,5 +227,9 @@ public class Board {
 
     private boolean isWithinBounds(int row, int col) {
         return row >= 0 && row < SIZE && col >= 0 && col < SIZE;
+    }
+
+    public boolean isCaptureMove(int fromRow, int fromCol, int toRow, int toCol) {
+        return Math.abs(fromRow - toRow) == 2 && Math.abs(fromCol - toCol) == 2;
     }
 }
