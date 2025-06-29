@@ -2,18 +2,21 @@ package fr.minesnancy.diasoumare.jeudedames;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-
 import java.util.List;
 
 public class VsPlayer extends AppCompatActivity {
@@ -176,5 +179,56 @@ public class VsPlayer extends AppCompatActivity {
             textView.setBackgroundColor(Color.WHITE);
             textView.setTextColor(Color.BLACK);
         }
+    }
+
+    public void pauseGame(View v) {
+        ViewGroup layout = findViewById(R.id.main);
+        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        View popupView = inflater.inflate(R.layout.popup_pause, null);
+        int width = ViewGroup.LayoutParams.MATCH_PARENT;
+        int height = ViewGroup.LayoutParams.WRAP_CONTENT;
+        boolean focusable = true;
+        PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
+        layout.post(new Runnable() {
+            @Override
+            public void run() {
+                popupWindow.showAtLocation(layout, Gravity.CENTER, 0, 0);
+            }
+        });
+        Button resume = popupView.findViewById(R.id.resumeButton);
+        resume.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                popupWindow.dismiss();
+            }
+        });
+        Button restart = popupView.findViewById(R.id.restartButton);
+        restart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                popupWindow.dismiss();
+                restartGame(v);
+            }
+        });
+        Button exit = popupView.findViewById(R.id.exitButton);
+        exit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+    }
+
+    public void restartGame(View v) {
+        board = new Board();
+        selectedSquare = null;
+        tour = Square.PieceColor.WHITE;
+        ViewGroup layout = findViewById(R.id.grid);
+        layout.removeAllViews();
+        createGrid();
+        TextView textView = findViewById(R.id.turn);
+        textView.setText("Tour des blancs");
+        textView.setBackgroundColor(Color.WHITE);
+        textView.setTextColor(Color.BLACK);
     }
 }
