@@ -81,6 +81,9 @@ public class VsPlayer extends AppCompatActivity {
             }
         }
     }
+    private boolean hasAnotherCapture(int row, int col) {
+        return board.getAccessibleCaptures(row, col).size() > 0;
+    }
 
     private void handleButtonClick(int row, int col) {
         Square clickedSquare = board.getSquare(row, col);
@@ -100,11 +103,25 @@ public class VsPlayer extends AppCompatActivity {
                     selectedSquare = null;
                 } else if (clickedSquare.getColor() == Square.PieceColor.NONE && isAccessibleMove(clickedSquare)) {
                     // Si on clique sur une case vide accessible, on y go
-                    board.movePiece(selectedSquare.getPosition()[0], selectedSquare.getPosition()[1], row, col);
+                    int fromRow = selectedSquare.getPosition()[0];
+                    int fromCol = selectedSquare.getPosition()[1];
+
+                    boolean isCapture = board.isCaptureMove(fromRow, fromCol, row, col);
+
+                    board.movePiece(fromRow, fromCol, row, col);
                     updateUI();
                     clearHighlights();
-                    selectedSquare = null;
-                    changeTurn();
+
+                    if (isCapture && hasAnotherCapture(row, col)) {
+                        // Rejouer avec le même pion
+                        selectedSquare = board.getSquare(row, col);
+                        highlightAccessibleMoves(selectedSquare);
+                        buttons[row][col].setBackgroundColor(Color.RED);
+                    } else {
+                        selectedSquare = null;
+                        changeTurn();
+                    }
+
 
                     // AJOUT : Vérifier la fin de partie après chaque mouvement
                     checkGameOver();
