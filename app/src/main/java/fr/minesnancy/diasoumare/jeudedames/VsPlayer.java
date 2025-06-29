@@ -105,6 +105,10 @@ public class VsPlayer extends AppCompatActivity {
                     clearHighlights();
                     selectedSquare = null;
                     changeTurn();
+
+                    // AJOUT : Vérifier la fin de partie après chaque mouvement
+                    checkGameOver();
+
                 } else if (clickedSquare.getColor() == selectedSquare.getColor()) {
                     // Changement de sélection, si la pièce est de la même couleur
                     clearHighlights();
@@ -230,5 +234,97 @@ public class VsPlayer extends AppCompatActivity {
         textView.setText("Tour des blancs");
         textView.setBackgroundColor(Color.WHITE);
         textView.setTextColor(Color.BLACK);
+    }
+    private void checkGameOver() {
+        if (board.isGameOver()) {
+            String winner = getWinner();
+            showGameOverDialog(winner);
+        } else if (hasNoValidMoves(tour)) {
+            // Vérifier si le joueur actuel a des mouvements possibles
+            String winner = (tour == Square.PieceColor.WHITE) ? "Noirs" : "Blancs";
+            showGameOverDialog(winner);
+        }
+    }
+
+    /**
+     * Détermine le gagnant basé sur les pièces restantes
+     */
+    private String getWinner() {
+        boolean hasWhite = false;
+        boolean hasBlack = false;
+
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                Square.PieceColor color = board.getPieceColor(i, j);
+                if (color == Square.PieceColor.WHITE) hasWhite = true;
+                if (color == Square.PieceColor.BLACK) hasBlack = true;
+            }
+        }
+
+        if (hasWhite && !hasBlack) return "Blancs";
+        if (hasBlack && !hasWhite) return "Noirs";
+        return "Égalité"; // Cas improbable mais possible
+    }
+
+    /**
+     * Vérifie si un joueur a des mouvements valides
+     */
+    private boolean hasNoValidMoves(Square.PieceColor playerColor) {
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                Square square = board.getSquare(i, j);
+                if (square.getColor() == playerColor) {
+                    List<Square> moves = board.getAccessibleMoves(i, j);
+                    if (!moves.isEmpty()) {
+                        return false; // Le joueur a au moins un mouvement
+                    }
+                }
+            }
+        }
+        return true; // Aucun mouvement possible
+    }
+
+    /**
+     * Affiche le dialog de fin de partie
+     */
+    private void showGameOverDialog(String winner) {
+        ViewGroup layout = findViewById(R.id.main);
+        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        View popupView = inflater.inflate(R.layout.popup_game_over, null);
+
+        int width = ViewGroup.LayoutParams.MATCH_PARENT;
+        int height = ViewGroup.LayoutParams.WRAP_CONTENT;
+        boolean focusable = true;
+        PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
+
+        // Configurer le message de victoire
+        TextView winnerText = popupView.findViewById(R.id.winnerText);
+        winnerText.setText("Victoire des " + winner + " !");
+
+        layout.post(new Runnable() {
+            @Override
+            public void run() {
+                popupWindow.showAtLocation(layout, Gravity.CENTER, 0, 0);
+            }
+        });
+
+        // Bouton nouvelle partie
+        Button newGameButton = popupView.findViewById(R.id.newGameButton);
+        newGameButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                popupWindow.dismiss();
+                restartGame(v);
+            }
+        });
+
+        // Bouton retour au menu
+        Button menuButton = popupView.findViewById(R.id.menuButton);
+        menuButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish(); // Retour à MainActivity
+            }
+        });
     }
 }
