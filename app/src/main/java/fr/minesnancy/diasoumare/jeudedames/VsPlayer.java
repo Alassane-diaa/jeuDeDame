@@ -119,6 +119,9 @@ public class VsPlayer extends AppCompatActivity {
                     clearHighlights();
 
                     boolean isCapture = board.isCaptureMove(fromRow, fromCol, row, col);
+                    if (isCapture) {
+                        ajoutPieceCapture(tour);
+                    }
                     if (isCapture && hasAnotherCapture(row, col)) {
                         // Rejouer avec le même pion
                         selectedSquare = board.getSquare(row, col);
@@ -261,6 +264,10 @@ public class VsPlayer extends AppCompatActivity {
         selectedSquare = null;
         tour = Square.PieceColor.WHITE;
         ViewGroup layout = findViewById(R.id.grid);
+        ViewGroup captureLayoutWhite = findViewById(R.id.captureGridWhite);
+        ViewGroup captureLayoutBlack = findViewById(R.id.captureGridBlack);
+        captureLayoutWhite.removeAllViews();
+        captureLayoutBlack.removeAllViews();
         layout.removeAllViews();
         createGrid();
         TextView textView = findViewById(R.id.turn);
@@ -350,5 +357,24 @@ public class VsPlayer extends AppCompatActivity {
                 finish(); // Retour à MainActivity
             }
         });
+    }
+
+    private void ajoutPieceCapture(Square.PieceColor color){
+        ImageView piece = new ImageView(getApplicationContext());
+        ViewGroup layout;
+        if (color == Square.PieceColor.WHITE) {
+            layout = findViewById(R.id.captureGridWhite);
+            piece.setImageResource(R.drawable.piece_noire);
+        } else{
+            layout = findViewById(R.id.captureGridBlack);
+            piece.setImageResource(R.drawable.piece_blanche);
+        }
+        piece.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        layout.addView(piece);
+        ViewGroup.LayoutParams params = piece.getLayoutParams();
+        params.width = 50;
+        params.height = 50;
+        piece.setLayoutParams(params);
+        piece.setBackgroundColor(Color.TRANSPARENT);
     }
 }
