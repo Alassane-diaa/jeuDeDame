@@ -26,6 +26,8 @@ public class VsPlayer extends AppCompatActivity {
     private Board board = new Board();
     private Square selectedSquare = null;
     private Square.PieceColor tour = Square.PieceColor.WHITE;
+    private boolean priseMultipleEnCours = false;
+    private Square pionEnRafale = null;
     private MediaPlayer clickSound;
     private MediaPlayer moveSound;
     private MediaPlayer illegalMoveSound;
@@ -95,9 +97,10 @@ public class VsPlayer extends AppCompatActivity {
     private void handleButtonClick(int row, int col) {
         Square clickedSquare = board.getSquare(row, col);
 
-        if (tour == clickedSquare.color || clickedSquare.getColor() == Square.PieceColor.NONE){
+        if (tour == clickedSquare.color || clickedSquare.getColor() == Square.PieceColor.NONE) {
             if (selectedSquare == null) {
-                // Si aucune pièce n'est sélectionnée
+                if (priseMultipleEnCours) return; // On empêche de changer de pion pendant une rafale
+
                 if (clickedSquare.getColor() != Square.PieceColor.NONE) {
                     selectedSquare = clickedSquare;
                     highlightAccessibleMoves(selectedSquare);
@@ -106,12 +109,12 @@ public class VsPlayer extends AppCompatActivity {
                 }
             } else {
                 if (selectedSquare == clickedSquare) {
-                    // Si la même pièce est cliquée deux fois de suite, on désélectionne
+                    if (priseMultipleEnCours) return; // Interdit de désélectionner pendant une rafale
+
                     clearHighlights();
                     selectedSquare = null;
                     clickSound.start();
                 } else if (clickedSquare.getColor() == Square.PieceColor.NONE && isAccessibleMove(clickedSquare)) {
-                    // Si on clique sur une case vide accessible, on y go
                     int fromRow = selectedSquare.getPosition()[0];
                     int fromCol = selectedSquare.getPosition()[1];
                     board.movePiece(fromRow, fromCol, row, col);
@@ -124,23 +127,31 @@ public class VsPlayer extends AppCompatActivity {
                     }
                     if (isCapture && hasAnotherCapture(row, col)) {
                         // Rejouer avec le même pion
-                        selectedSquare = board.getSquare(row, col);
+                        priseMultipleEnCours = true;
+                        pionEnRafale = board.getSquare(row, col);
+                        selectedSquare = pionEnRafale;
                         highlightAccessibleCaptures(selectedSquare);
                         buttons[row][col].setBackgroundColor(Color.RED);
                     } else {
+                        // Fin de rafale
+                        priseMultipleEnCours = false;
+                        pionEnRafale = null;
                         selectedSquare = null;
                         changeTurn();
                         checkGameOver();
                     }
                     moveSound.start();
                 } else if (clickedSquare.getColor() == selectedSquare.getColor()) {
-                    // Changement de sélection, si la pièce est de la même couleur
+                    if (priseMultipleEnCours) return; // Interdit de changer de pion pendant une rafale
+
                     clearHighlights();
                     selectedSquare = clickedSquare;
                     highlightAccessibleMoves(selectedSquare);
                     buttons[row][col].setBackgroundColor(Color.RED);
                     clickSound.start();
                 } else {
+                    if (priseMultipleEnCours) return;
+
                     clearHighlights();
                     selectedSquare = null;
                     illegalMoveSound.start();
