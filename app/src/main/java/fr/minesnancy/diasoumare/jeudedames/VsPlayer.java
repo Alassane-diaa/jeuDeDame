@@ -29,7 +29,6 @@ public class VsPlayer extends AppCompatActivity {
     private boolean priseMultipleEnCours = false;
     private Square pionEnRafale = null;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
