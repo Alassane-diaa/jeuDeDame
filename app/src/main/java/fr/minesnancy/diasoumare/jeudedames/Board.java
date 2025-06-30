@@ -212,8 +212,10 @@ public class Board {
 
         if (endRow == 0 && endSquare.getColor() == Square.PieceColor.WHITE || startSquare.isDame()) {
             endSquare.setDame(true);
+            startSquare.setDame(false);
         } else if (endRow == SIZE - 1 && endSquare.getColor() == Square.PieceColor.BLACK || startSquare.isDame()) {
             endSquare.setDame(true);
+            startSquare.setDame(false);
         }
         if (colDiff >= 2) {
             for (int i = 0; i < colDiff; i++) {
@@ -230,6 +232,21 @@ public class Board {
     }
 
     public boolean isCaptureMove(int fromRow, int fromCol, int toRow, int toCol) {
-        return Math.abs(fromRow - toRow) == 2 && Math.abs(fromCol - toCol) == 2;
+        Square square = board[fromRow][fromCol];
+        if (!square.isDame()) {
+            return Math.abs(fromRow - toRow) == 2 && Math.abs(fromCol - toCol) == 2;
+        } else {
+            int rowDiff = toRow - fromRow;
+            int colDiff = Math.abs(fromCol - toCol);
+            for (int i = 0; i < colDiff; i++) {
+                int midRow = fromRow + (rowDiff > 0 ? 1 : -1) * i;
+                int midCol = fromCol + (toCol > fromCol ? 1 : -1) * i;
+                if (board[midRow][midCol].getColor() != Square.PieceColor.NONE &&
+                    board[midRow][midCol].getColor() != square.getColor()) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }

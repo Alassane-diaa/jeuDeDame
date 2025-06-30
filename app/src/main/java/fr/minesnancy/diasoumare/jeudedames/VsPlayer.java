@@ -117,14 +117,14 @@ public class VsPlayer extends AppCompatActivity {
                 } else if (clickedSquare.getColor() == Square.PieceColor.NONE && isAccessibleMove(clickedSquare)) {
                     int fromRow = selectedSquare.getPosition()[0];
                     int fromCol = selectedSquare.getPosition()[1];
-                    board.movePiece(fromRow, fromCol, row, col);
-                    updateUI();
-                    clearHighlights();
-
                     boolean isCapture = board.isCaptureMove(fromRow, fromCol, row, col);
                     if (isCapture) {
                         ajoutPieceCapture(tour);
                     }
+                    board.movePiece(fromRow, fromCol, row, col);
+                    updateUI();
+                    clearHighlights();
+
                     if (isCapture && hasAnotherCapture(row, col)) {
                         // Rejouer avec le même pion
                         priseMultipleEnCours = true;
